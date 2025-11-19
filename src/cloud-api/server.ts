@@ -14,6 +14,7 @@ import {
 } from "./tencent/tencent-cloud";
 import { recognizeAudio as OpenAIASR } from "./openai/openai-asr";
 import { recognizeAudio as GeminiASR } from "./gemini/gemini-asr";
+import { recognizeAudio as MistralASR } from "./mistral/mistral-asr";
 import { recognizeAudio as VoskASR } from "./local/vosk-asr";
 import { recognizeAudio as WisperASR } from "./local/whisper-asr";
 import {
@@ -36,6 +37,10 @@ import {
   chatWithLLMStream as GrokLLMStream,
   resetChatHistory as GrokResetChatHistory,
 } from "./grok/grok-llm";
+import {
+  chatWithLLMStream as MistralLLMStream,
+  resetChatHistory as MistralResetChatHistory,
+} from "./mistral/mistral-llm";
 import VolcengineTTS from "./volcengine/volcengine-tts";
 import OpenAITTS from "./openai/openai-tts";
 import geminiTTS from "./gemini/gemini-tts";
@@ -90,6 +95,9 @@ switch (asrServer) {
   case ASRServer.gemini:
     recognizeAudio = GeminiASR;
     break;
+  case ASRServer.mistral:
+    recognizeAudio = MistralASR;
+    break;
   case ASRServer.vosk:
     recognizeAudio = VoskASR;
     break;
@@ -98,7 +106,7 @@ switch (asrServer) {
     break;
   default:
     console.warn(
-      `unknown asr server: ${asrServer}, should be VOLCENGINE/TENCENT/OPENAI/GEMINI/VOSK/WHISPER`
+      `unknown asr server: ${asrServer}, should be VOLCENGINE/TENCENT/OPENAI/GEMINI/MISTRAL/VOSK/WHISPER`
     );
     break;
 }
@@ -124,9 +132,13 @@ switch (llmServer) {
     chatWithLLMStream = GrokLLMStream;
     resetChatHistory = GrokResetChatHistory;
     break;
+  case LLMServer.mistral:
+    chatWithLLMStream = MistralLLMStream;
+    resetChatHistory = MistralResetChatHistory;
+    break;
   default:
     console.warn(
-      `unknown llm server: ${llmServer}, should be VOLCENGINE/OPENAI/GEMINI/OLLAMA/GROK`
+      `unknown llm server: ${llmServer}, should be VOLCENGINE/OPENAI/GEMINI/OLLAMA/GROK/MISTRAL`
     );
     break;
 }

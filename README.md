@@ -113,6 +113,7 @@ The chatbot saves conversation history and generated images in the `data` folder
 - Refactor python render thread, better performance ✅
 - Add Google Gemini API support ✅
 - Add Grok API support ✅
+- Add Mistral API support ✅
 - RPI camera support ✅
 - Support speaker recognition
 
