@@ -2,15 +2,12 @@ import { exec, spawn, ChildProcess } from "child_process";
 import { isEmpty, noop } from "lodash";
 import { killAllProcesses } from "../utils";
 import dotenv from "dotenv";
-import { ttsServer, asrServer } from "../cloud-api/server";
-import { ASRServer, TTSServer } from "../type";
 
 dotenv.config();
 
-const useWavPlayer = [TTSServer.gemini, TTSServer.piper].includes(ttsServer);
-export const recordFileFormat = [ASRServer.vosk, ASRServer.whisper].includes(asrServer)
-  ? "wav"
-  : "mp3";
+// Bastard version: Hardcoded for espeak-ng (wav output) and OpenRouter (mp3 input)
+const useWavPlayer = true; // espeak-ng outputs raw PCM like piper
+export const recordFileFormat = "mp3"; // OpenRouter supports mp3 for smaller files
 
 function startPlayerProcess() {
   if (useWavPlayer) {

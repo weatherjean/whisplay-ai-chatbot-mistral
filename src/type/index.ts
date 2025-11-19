@@ -12,45 +12,8 @@ export interface OllamaMessage {
   tool_name?: string;
 }
 
-export enum ASRServer {
-  volcengine = "volcengine",
-  tencent = "tencent",
-  openai = "openai",
-  gemini = "gemini",
-  mistral = "mistral",
-  vosk = "vosk",
-  whisper = "whisper",
-}
-
-export enum LLMServer {
-  volcengine = "volcengine",
-  openai = "openai",
-  ollama = "ollama",
-  gemini = "gemini",
-  grok = "grok",
-  mistral = "mistral",
-}
-
-export enum TTSServer {
-  volcengine = "volcengine",
-  openai = "openai",
-  tencent = "tencent",
-  gemini = "gemini",
-  piper = "piper",
-}
-
-export enum ImageGenerationServer {
-  openai = "openai",
-  gemini = "gemini",
-  volcengine = "volcengine",
-}
-
-export enum VisionServer {
-  ollama = "ollama",
-  openai = "openai",
-  gemini = "gemini",
-  volcengine = "volcengine",
-}
+// Bastard version: No provider enums needed
+// Hardcoded to OpenRouter + Piper
 
 export interface FunctionCall {
   function: {

@@ -10,7 +10,7 @@ import {
 } from "../../config/llm-config";
 import { FunctionCall, Message, ToolReturnTag } from "../../type";
 import { combineFunction } from "../../utils";
-import { mistral, mistralLLMModel } from "./mistral";
+import { openrouter, openRouterLLMModel } from "./openrouter";
 import { llmFuncMap, llmTools } from "../../config/llm-tools";
 import { ChatWithLLMStreamFunction } from "../interface";
 import { chatHistoryDir } from "../../utils/dir";
@@ -18,7 +18,7 @@ import { extractToolResponse, stimulateStreamResponse } from "../../config/commo
 
 dotenv.config();
 
-const chatHistoryFileName = `mistral_chat_history_${moment().format(
+const chatHistoryFileName = `openrouter_chat_history_${moment().format(
   "YYYY-MM-DD_HH-mm-ss"
 )}.json`;
 
@@ -44,8 +44,8 @@ const chatWithLLMStream: ChatWithLLMStreamFunction = async (
   partialThinkingCallback?: (partialThinking: string) => void,
   invokeFunctionCallback?: (functionName: string, result?: string) => void
 ): Promise<void> => {
-  if (!mistral) {
-    console.error("Mistral API key is not set.");
+  if (!openrouter) {
+    console.error("OpenRouter API key is not set.");
     return;
   }
   if (shouldResetChatHistory()) {
@@ -63,23 +63,23 @@ const chatWithLLMStream: ChatWithLLMStreamFunction = async (
   });
   messages.push(...inputMessages);
 
-  const chatCompletion = await mistral.chat.stream({
-    model: mistralLLMModel,
+  const chatCompletion = await openrouter.chat.completions.create({
+    model: openRouterLLMModel,
     messages: messages as any,
-    tools: llmTools as any,
+    stream: true,
+    tools: llmTools,
   });
 
   let partialAnswer = "";
   const functionCallsPackages: any[] = [];
 
   for await (const chunk of chatCompletion) {
-    const deltaContent = chunk.data.choices[0].delta.content;
-    if (deltaContent && typeof deltaContent === "string") {
-      partialCallback(deltaContent);
-      partialAnswer += deltaContent;
+    if (chunk.choices[0].delta.content) {
+      partialCallback(chunk.choices[0].delta.content);
+      partialAnswer += chunk.choices[0].delta.content;
     }
-    if (chunk.data.choices[0].delta.toolCalls) {
-      functionCallsPackages.push(...chunk.data.choices[0].delta.toolCalls);
+    if (chunk.choices[0].delta.tool_calls) {
+      functionCallsPackages.push(...chunk.choices[0].delta.tool_calls);
     }
   }
 

@@ -1,169 +1,32 @@
-import { noop } from "lodash";
 import dotenv from "dotenv";
-import {
-  ASRServer,
-  ImageGenerationServer,
-  LLMServer,
-  TTSServer,
-  VisionServer,
-} from "../type";
-import { recognizeAudio as VolcengineASR } from "./volcengine/volcengine-asr";
-import {
-  recognizeAudio as TencentASR,
-  synthesizeSpeech as TencentTTS,
-} from "./tencent/tencent-cloud";
-import { recognizeAudio as OpenAIASR } from "./openai/openai-asr";
-import { recognizeAudio as GeminiASR } from "./gemini/gemini-asr";
-import { recognizeAudio as MistralASR } from "./mistral/mistral-asr";
-import { recognizeAudio as VoskASR } from "./local/vosk-asr";
-import { recognizeAudio as WisperASR } from "./local/whisper-asr";
-import {
-  chatWithLLMStream as VolcengineLLMStream,
-  resetChatHistory as VolcengineResetChatHistory,
-} from "./volcengine/volcengine-llm";
-import {
-  chatWithLLMStream as OpenAILLMStream,
-  resetChatHistory as OpenAIResetChatHistory,
-} from "./openai/openai-llm";
-import {
-  chatWithLLMStream as OllamaLLMStream,
-  resetChatHistory as OllamaResetChatHistory,
-} from "./local/ollama-llm";
-import {
-  chatWithLLMStream as GeminiLLMStream,
-  resetChatHistory as GeminiResetChatHistory,
-} from "./gemini/gemini-llm";
-import {
-  chatWithLLMStream as GrokLLMStream,
-  resetChatHistory as GrokResetChatHistory,
-} from "./grok/grok-llm";
-import {
-  chatWithLLMStream as MistralLLMStream,
-  resetChatHistory as MistralResetChatHistory,
-} from "./mistral/mistral-llm";
-import VolcengineTTS from "./volcengine/volcengine-tts";
-import OpenAITTS from "./openai/openai-tts";
-import geminiTTS from "./gemini/gemini-tts";
 import {
   ChatWithLLMStreamFunction,
   RecognizeAudioFunction,
   ResetChatHistoryFunction,
   TTSProcessorFunction,
 } from "./interface";
-import piperTTS from "./local/piper-tts";
+import {
+  chatWithLLMStream as OpenRouterLLMStream,
+  resetChatHistory as OpenRouterResetChatHistory,
+} from "./openrouter/openrouter-llm";
+import { recognizeAudio as OpenRouterASR } from "./openrouter/openrouter-asr";
+import espeakTTS from "./local/espeak-tts";
 
 dotenv.config();
 
-let recognizeAudio: RecognizeAudioFunction = noop as any;
-let chatWithLLMStream: ChatWithLLMStreamFunction = noop as any;
-let ttsProcessor: TTSProcessorFunction = noop as any;
-let resetChatHistory: ResetChatHistoryFunction = noop as any;
+// Bastard version: Single provider setup
+// - LLM: OpenRouter (mistralai/mistral-medium-3.1)
+// - ASR: OpenRouter (mistralai/voxtral-small-24b-2507)
+// - TTS: espeak-ng (local, tiny, robotic but works)
 
-export const asrServer: ASRServer = (
-  process.env.ASR_SERVER || ASRServer.tencent
-).toLowerCase() as ASRServer;
-export const llmServer: LLMServer = (
-  process.env.LLM_SERVER || LLMServer.volcengine
-).toLowerCase() as LLMServer;
-export const ttsServer: TTSServer = (
-  process.env.TTS_SERVER || TTSServer.volcengine
-).toLowerCase() as TTSServer;
-export const imageGenerationServer: ImageGenerationServer = (
-  process.env.IMAGE_GENERATION_SERVER || ""
-).toLowerCase() as ImageGenerationServer;
-export const visionServer: VisionServer = (
-  process.env.VISION_SERVER || ""
-).toLowerCase() as VisionServer;
+console.log("=== Bastard Version ===");
+console.log("LLM: OpenRouter (mistralai/mistral-medium-3.1)");
+console.log("ASR: OpenRouter (mistralai/voxtral-small-24b-2507)");
+console.log("TTS: espeak-ng (local, ~1MB)");
+console.log("=======================");
 
-console.log(`Current ASR Server: ${asrServer}`);
-console.log(`Current LLM Server: ${llmServer}`);
-console.log(`Current TTS Server: ${ttsServer}`);
-if (imageGenerationServer)
-  console.log(`Current Image Generation Server: ${imageGenerationServer}`);
-if (visionServer) console.log(`Current Vision Server: ${visionServer}`);
-
-switch (asrServer) {
-  case ASRServer.volcengine:
-    recognizeAudio = VolcengineASR;
-    break;
-  case ASRServer.tencent:
-    recognizeAudio = TencentASR;
-    break;
-  case ASRServer.openai:
-    recognizeAudio = OpenAIASR;
-    break;
-  case ASRServer.gemini:
-    recognizeAudio = GeminiASR;
-    break;
-  case ASRServer.mistral:
-    recognizeAudio = MistralASR;
-    break;
-  case ASRServer.vosk:
-    recognizeAudio = VoskASR;
-    break;
-  case ASRServer.whisper:
-    recognizeAudio = WisperASR;
-    break;
-  default:
-    console.warn(
-      `unknown asr server: ${asrServer}, should be VOLCENGINE/TENCENT/OPENAI/GEMINI/MISTRAL/VOSK/WHISPER`
-    );
-    break;
-}
-
-switch (llmServer) {
-  case LLMServer.volcengine:
-    chatWithLLMStream = VolcengineLLMStream;
-    resetChatHistory = VolcengineResetChatHistory;
-    break;
-  case LLMServer.openai:
-    chatWithLLMStream = OpenAILLMStream;
-    resetChatHistory = OpenAIResetChatHistory;
-    break;
-  case LLMServer.ollama:
-    chatWithLLMStream = OllamaLLMStream;
-    resetChatHistory = OllamaResetChatHistory;
-    break;
-  case LLMServer.gemini:
-    chatWithLLMStream = GeminiLLMStream;
-    resetChatHistory = GeminiResetChatHistory;
-    break;
-  case LLMServer.grok:
-    chatWithLLMStream = GrokLLMStream;
-    resetChatHistory = GrokResetChatHistory;
-    break;
-  case LLMServer.mistral:
-    chatWithLLMStream = MistralLLMStream;
-    resetChatHistory = MistralResetChatHistory;
-    break;
-  default:
-    console.warn(
-      `unknown llm server: ${llmServer}, should be VOLCENGINE/OPENAI/GEMINI/OLLAMA/GROK/MISTRAL`
-    );
-    break;
-}
-
-switch (ttsServer) {
-  case TTSServer.volcengine:
-    ttsProcessor = VolcengineTTS;
-    break;
-  case TTSServer.openai:
-    ttsProcessor = OpenAITTS;
-    break;
-  case TTSServer.tencent:
-    ttsProcessor = TencentTTS;
-    break;
-  case TTSServer.gemini:
-    ttsProcessor = geminiTTS;
-    break;
-  case TTSServer.piper:
-    ttsProcessor = piperTTS;
-    break;
-  default:
-    console.warn(
-      `unknown tts server: ${ttsServer}, should be VOLCENGINE/TENCENT/OPENAI/GEMINI/PIPER`
-    );
-    break;
-}
-
-export { recognizeAudio, chatWithLLMStream, ttsProcessor, resetChatHistory };
+// Direct assignment - no switching, no enums, no bullshit
+export const recognizeAudio: RecognizeAudioFunction = OpenRouterASR;
+export const chatWithLLMStream: ChatWithLLMStreamFunction = OpenRouterLLMStream;
+export const resetChatHistory: ResetChatHistoryFunction = OpenRouterResetChatHistory;
+export const ttsProcessor: TTSProcessorFunction = espeakTTS;
